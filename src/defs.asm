@@ -13,6 +13,12 @@ SPRITE_X_MSB = $d010
 SCREEN_CTL_1 = $d011
 RASTER_LINE = $d012
 SPRITE_ENABLE = $d015
+
+; 0-2: horizontal raster scroll
+; 3: screen width: 0 = 38 columns, 1 = 40 columns
+; 4: 1 = multicolor mode on
+SCREEN_CTL_2 = $d016
+
 INT_CTL = $d01a
 INT_STATUS = $d019
 SCR_COLOR_BORDER = $d020
