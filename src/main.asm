@@ -19,38 +19,7 @@
 
 	include "defs.asm"
 	include "macros.asm"
-
-
-	dsect
-	org $02
-
-scanresult:			blk 8
-tick:				byt
-spr_x_msb:			byt
-player1_x:			blk 2
-player1_y:			byt
-player1_direction:	byt
-player1_speed:		byt
-player1_bombing:	byt
-player1_bomb_x:		blk 2
-player1_bomb_y:		byt
-player1_bomb_dir:	byt
-player1_bomb_spd_x:	byt
-player1_bomb_spd_y:	byt
-temp:				byt
-temp2:				byt
-temp16:				blk 2
-
-	dend
-
-X_MIN = 20
-X_MAX = 320-256
-Y_MAX = 229
-NOT_BOMBING = $ff
-
-; how much coords need to be decreased for character coord matching
-SPR_X_OFFSET = 24
-SPR_Y_OFFSET = 50
+	include "gamedefs.asm"
 
 ; methods
 clearScreen = $e544
@@ -135,26 +104,7 @@ ClearSid:
 	lda #%00001111	; volume to max
 	sta SID_FLT_VM
 
-	lda #NOT_BOMBING
-	sta player1_bombing
-	lda #$60
-	sta player1_y
-	sta16 player1_x,#$00,#X_MIN
-	lda #2
-	sta player1_speed
-	
-	; Sprite #0: located at $2000 / $40 = $80
-	lda #$80
-	sta SPRITE_PTR
-	; Sprite #1: located at $2040 / $40 = $81
-	lda #$81
-	sta SPRITE_PTR+1
-
-	; multicolor mode on
-	lda SCREEN_CTL_2
-	ora #%00010000
-	sta SCREEN_CTL_2
-
+	jsr InitData
 	jsr DrawLevel
 
 	cli 			; clear interrupt flag, allowing the CPU to respond to interrupt requests
@@ -180,6 +130,7 @@ Isr:
 	jsr StartSpriteDraw
 	jsr DrawPlayer1
 	jsr DrawBomb1
+	jsr DrawScore
 	jsr EndSpriteDraw
 
 	jmp stdIntRestore
@@ -188,276 +139,14 @@ Isr:
 ; SUBROUTINES
 ;================================
 
-CheckCollision:
-	; screen coords 320x200 to char coords 40x25
-	; x: 320/40 = 8
-	; y: 200/25 = 8
-
-	lda player1_bombing
-	cmp #NOT_BOMBING
-	beq .noCollision
-
-	lda player1_bomb_y
-	sec
-	sbc #SPR_Y_OFFSET
-	to_char_coord
-	sta temp2
-
-	lda player1_bomb_x
-	sec
-	sbc #SPR_X_OFFSET
-	to_char_coord
-	sta temp
-	lda player1_bomb_x+1
-	beq .noAdd
-	; if x > 255 add 32 to char coord
-	lda #32
-	clc
-	adc temp
-	sta temp
-.noAdd:
-	; temp & temp2 are now char coords x & y
-
-	lda #0
-	sta temp16
-	sta temp16+1
-	ldx temp2
-.loopY
-	lda #40
-	inc16 temp16
-	dex
-	bpl .loopY
-
-	; temp16 now holds screen ram y offset from 0, add $0400 to get the absolute screen address
-	lda #$04
-	clc
-	adc temp16+1
-	sta temp16+1
-
-	; get the char at temp,temp2
-	ldy temp
-	lda (temp16),y
-	
-	cmp #PETSCII_SPACE
-	beq .noCollision
-	cmp #$01
-	beq .groundCollision
-	jmp .noCollision
-.groundCollision:
-	lda #NOT_BOMBING
-	sta player1_bombing
-.noCollision:
-	rts
-
-DrawLevel:
-	ldx #249
-.loopScreen:
-	lda Level,x
-	beq .skip1
-	sta SCREEN_MEM,x
-.skip1:
-	lda Level+250,x
-	beq .skip2
-	sta SCREEN_MEM+250,x
-.skip2:
-	lda Level+500,x
-	beq .skip3
-	sta SCREEN_MEM+500,x
-.skip3:
-	lda Level+750,x
-	beq .skip4
-	sta SCREEN_MEM+750,x
-.skip4:
-	dex
-	cpx #$ff
-	bne .loopScreen
-	rts
-
-StartSpriteDraw:
-	lda #0
-	sta spr_x_msb
-	rts
-
-EndSpriteDraw:
-	lda spr_x_msb
-	sta SPRITE_X_MSB
-	rts
-
-HandleSpriteVisibility:
-	ldx #01
-	lda player1_bombing
-	cmp #NOT_BOMBING
-	beq .dontDrawBomb1
-	txa
-	eor #02
-	tax
-.dontDrawBomb1:
-	stx SPRITE_ENABLE
-	rts
-
-CheckKeys:
-	lda #%00010000 ; test space key
-	and scanresult
-	bne .dontStartBomb
-	lda player1_bombing
-	cmp #NOT_BOMBING
-	bne .dontStartBomb
-.startBombing:
-	lda #0
-	sta player1_bombing
-	sta16 player1_bomb_x,player1_x+1,player1_x
-	lda player1_y
-	sta player1_bomb_y
-	lda player1_speed
-	sta player1_bomb_spd_x
-	lda player1_direction
-	sta player1_bomb_dir
-	lda #2
-	sta player1_bomb_spd_y
-.dontStartBomb:
-	rts
-
-AdvancePlayer1:
-	lda player1_direction
-	beq .increaseX
-	dec16 player1_x,player1_speed
-	jmp .checkExitScreen
-.increaseX:
-	lda player1_speed
-	inc16 player1_x
-.checkExitScreen:
-	sta16 temp16,#1,#X_MAX
-	gte_branch16 player1_x,temp16,ExitedScreen
-	sta16 temp16,#0,#X_MIN
-	gte_branch16 temp16,player1_x,ExitedScreen
-	jmp ExitAdvancePlayer
-ExitedScreen:
-	; change direction
-	lda player1_direction
-	bne .leftToRight
-.rightToLeft:
-	sta16 player1_x,#1,#X_MAX
-	lda #1
-	sta player1_direction
-	jmp ExitAdvancePlayer
-.leftToRight:
-	sta16 player1_x,#0,#X_MIN
-	lda #0
-	sta player1_direction
-ExitAdvancePlayer:
-	rts
-
-AdvanceBomb1:
-	lda player1_bombing
-	cmp #NOT_BOMBING
-	beq .exit
-	lda player1_bomb_dir
-	beq .leftToRight
-	dec16 player1_bomb_x,player1_bomb_spd_x
-	jmp .handleY
-.leftToRight:
-	lda player1_bomb_spd_x
-	inc16 player1_bomb_x
-.handleY:
-	lda player1_bomb_spd_y
-	clc
-	adc player1_bomb_y
-	sta player1_bomb_y
-.exit:
-	rts
-
-DrawBomb1:
-	lda player1_bomb_y
-	sta SPRITE_1_Y
-	lda player1_bomb_x+1
-	and #%00000001
-	asl
-	ora spr_x_msb
-	sta spr_x_msb
-	lda player1_bomb_x
-	sta SPRITE_1_X
-	rts
-
-DrawPlayer1:
-	lda player1_y
-	sta SPRITE_0_Y
-	lda player1_x+1
-	and #%00000001
-	ora spr_x_msb
-	sta spr_x_msb
-	lda player1_x
-	sta SPRITE_0_X
-	rts
-
-ReadKeyboard:
-	lda #%11111110
-	sta CIA_PORT_A
-	ldy CIA_PORT_B
-	sty scanresult+7
-	sec
-	rol
-	sta CIA_PORT_A
-	ldy CIA_PORT_B
-	sty scanresult+6
-	rol
-	sta CIA_PORT_A
-	ldy CIA_PORT_B
-	sty scanresult+5
-	rol
-	sta CIA_PORT_A
-	ldy CIA_PORT_B
-	sty scanresult+4
-	rol
-	sta CIA_PORT_A
-	ldy CIA_PORT_B
-	sty scanresult+3
-	rol
-	sta CIA_PORT_A
-	ldy CIA_PORT_B
-	sty scanresult+2
-	rol
-	sta CIA_PORT_A
-	ldy CIA_PORT_B
-	sty scanresult+1
-	rol
-	sta CIA_PORT_A
-	ldy CIA_PORT_B
-	sty scanresult
-	
-	rts
+	include "init.asm"
+	include "collision.asm"
+	include "input.asm"
+	include "draw.asm"
+	include "gamelogic.asm"
 
 ;================================
 ; DATA
 ;================================
 
-Level:
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $01,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$09,$01
-	db $01,$01,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$08,$01,$01
-	db $01,$01,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$07,$00,$01,$01
-
-	db $01,$01,$01,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$06,$01,$01,$01
-	db $01,$01,$01,$01,$01,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$05,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$04,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$03,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$01,$01,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$02,$01,$01,$01,$01,$01,$01,$01,$01
-
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01
-
+	include "level.asm"

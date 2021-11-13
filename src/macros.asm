@@ -58,9 +58,19 @@ gte_branch16	macro
 .\@:
 	endmacro
 
-; converts pixel coordinate to character coordinate (=divide by 8)
+; converts pixel coordinate (A) to character coordinate (=divide by 8)
 to_char_coord	macro
 	lsr
 	lsr
 	lsr
+	endmacro
+
+; converts pixel coordinate (\1, 16-bit) to character coordinate (=divide by 8)
+to_char_coord_16	macro
+	lsr \1+1
+	ror \1
+	lsr \1+1
+	ror \1
+	lsr \1+1
+	ror \1
 	endmacro
