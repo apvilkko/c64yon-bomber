@@ -14,6 +14,11 @@ player1_bomb_y:		byt
 player1_bomb_dir:	byt
 player1_bomb_spd_x:	byt
 player1_bomb_spd_y:	byt
+; counter for how many boulders the current bomb can go through
+player1_bomb_thr:	byt
+player1_bomb_age:	byt
+player1_bomb_age_p:	byt
+; score in 4-digit decimal
 player1_score:		blk 2
 temp:				byt
 temp2:				byt

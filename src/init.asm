@@ -20,4 +20,11 @@ InitData:
 	;ora #%00010000
 	;sta SCREEN_CTL_2
 	
+	; init sid voice 3 for randomization
+	lda #$FF
+	sta SID_V3_FREQ_1
+	sta SID_V3_FREQ_2
+	lda #$80 ; noise, gate off
+	sta SID_V3_CTL
+
 	rts

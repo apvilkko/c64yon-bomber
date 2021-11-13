@@ -32,6 +32,22 @@ AdvanceBomb1:
 	lda player1_bombing
 	cmp #NOT_BOMBING
 	beq .exit
+
+	; adjust bomb speed based on bomb "age"
+	lda player1_bomb_age
+	cmp player1_bomb_age_p
+	beq .skipAdjust
+	cmp #10
+	beq .bombAdjust
+	jmp .skipAdjust
+.bombAdjust:
+	dec player1_bomb_spd_x
+	bmi .keepZero
+	jmp .skipAdjust
+.keepZero:
+	lda #0
+	sta player1_bomb_spd_x
+.skipAdjust:
 	lda player1_bomb_dir
 	beq .leftToRight
 	dec16 player1_bomb_x,player1_bomb_spd_x
@@ -44,5 +60,15 @@ AdvanceBomb1:
 	clc
 	adc player1_bomb_y
 	sta player1_bomb_y
+.exit:
+	rts
+
+PerFrame:
+	lda player1_bomb_age
+	sta player1_bomb_age_p
+	lda tick
+	and #%00000011
+	bne .exit
+	inc player1_bomb_age
 .exit:
 	rts

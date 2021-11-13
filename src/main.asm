@@ -123,6 +123,7 @@ Isr:
 	inc tick
 	jsr ReadKeyboard
 	jsr CheckKeys
+	jsr PerFrame
 	jsr AdvancePlayer1
 	jsr AdvanceBomb1
 	jsr CheckCollision
@@ -139,6 +140,7 @@ Isr:
 ; SUBROUTINES
 ;================================
 
+	include "util.asm"
 	include "init.asm"
 	include "collision.asm"
 	include "input.asm"

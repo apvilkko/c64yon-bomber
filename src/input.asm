@@ -46,6 +46,27 @@ CheckKeys:
 .startBombing:
 	lda #0
 	sta player1_bombing
+	sta player1_bomb_age
+	sta player1_bomb_age_p
+
+	; randomize bomb effectiveness
+	jsr Rand
+	lsr ; clamp random number to 0-127
+	cmp #84
+	bcs .option1
+	cmp #42
+	bcs .option2
+	jmp .option3
+.option1:
+	lda #4
+	db $2c
+.option2:
+	lda #5
+	db $2c
+.option3:
+	lda #6
+	sta player1_bomb_thr
+
 	sta16 player1_bomb_x,player1_x+1,player1_x
 	lda player1_y
 	sta player1_bomb_y

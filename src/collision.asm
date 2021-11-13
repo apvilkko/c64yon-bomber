@@ -57,6 +57,12 @@ CheckCollision:
 	beq .groundCollision
 
 	; bomb collided with scored block
+	
+	; check that bomb can't go through any more blocks -> dismiss bomb
+	dec player1_bomb_thr
+	beq .outside
+
+	; increase score
 	lda #1
 	sed
 	inc16 player1_score
