@@ -44,6 +44,24 @@ ExitedScreen:
 	lda #3
 	sta player1_speed
 
+	; randomize y pos
+	jsr Rand
+	lsr ; clamp random number to 0-127
+	cmp #84
+	bcs .yoption1
+	cmp #42
+	bcs .yoption2
+	jmp .yoption3
+.yoption1:
+	lda #YPOS_1
+	db $2c
+.yoption2:
+	lda #YPOS_2
+	db $2c
+.yoption3:
+	lda #YPOS_3
+	sta player1_y
+
 ExitAdvancePlayer:
 	rts
 

@@ -1,7 +1,7 @@
 InitData:
 	lda #NOT_BOMBING
 	sta player1_bombing
-	lda #$60
+	lda #YPOS_1
 	sta player1_y
 	sta16 player1_x,#0,#X_MIN
 	lda #2

@@ -32,6 +32,10 @@ NOT_BOMBING = $ff
 GROUND = 102
 EMPTY_BLOCK = PETSCII_SPACE
 
+YPOS_1 = 96
+YPOS_2 = 108
+YPOS_3 = 120
+
 ; how much coords need to be decreased for character coord matching
 SPR_X_OFFSET = 24
 SPR_Y_OFFSET = 50
