@@ -3,6 +3,7 @@
 
 scanresult:			blk 8
 tick:				byt
+subtick:			byt
 spr_x_msb:			byt
 player1_x:			blk 2
 player1_y:			byt
@@ -12,12 +13,10 @@ player1_bombing:	byt
 player1_bomb_x:		blk 2
 player1_bomb_y:		byt
 player1_bomb_dir:	byt
-player1_bomb_spd_x:	byt
-player1_bomb_spd_y:	byt
+player1_bomb_ptr:	blk 2
 ; counter for how many boulders the current bomb can go through
 player1_bomb_thr:	byt
 player1_bomb_age:	byt
-player1_bomb_age_p:	byt
 ; score in 4-digit decimal
 player1_score:		blk 2
 temp:				byt

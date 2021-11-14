@@ -85,6 +85,10 @@ Init:
 	lda #>Isr
 	sta ISR_HI
 
+	lda #0
+	sta tick
+	sta subtick
+
 	lda #$01
 	sta INT_CTL		; enable raster interrupt
 
@@ -121,6 +125,10 @@ Loop:
 Isr:
 	asl INT_STATUS	; acknowledge the interrupt by clearing the VIC's interrupt flag
 	inc tick
+	inc subtick
+	lda #%00000011
+	and subtick
+	sta subtick
 	jsr ReadKeyboard
 	jsr CheckKeys
 	jsr PerFrame
@@ -152,3 +160,4 @@ Isr:
 ;================================
 
 	include "level.asm"
+	include "generated.asm"

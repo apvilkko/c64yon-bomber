@@ -62,8 +62,10 @@ CheckCollision:
 	dec player1_bomb_thr
 	beq .outside
 
-	; increase score
-	lda #1
+	; increase score (block at first row (=12) equal one point and +1 onwards)
+	lda temp2
+	sec
+	sbc #11
 	sed
 	inc16 player1_score
 	cld

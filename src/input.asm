@@ -47,7 +47,6 @@ CheckKeys:
 	lda #0
 	sta player1_bombing
 	sta player1_bomb_age
-	sta player1_bomb_age_p
 
 	; randomize bomb effectiveness
 	jsr Rand
@@ -70,11 +69,30 @@ CheckKeys:
 	sta16 player1_bomb_x,player1_x+1,player1_x
 	lda player1_y
 	sta player1_bomb_y
+
+	; initialize bomb velocity pointer
+	lda #<Speed1
+	sta player1_bomb_ptr
+	lda #>Speed1
+	sta player1_bomb_ptr+1
+
 	lda player1_speed
-	sta player1_bomb_spd_x
+	cmp #1
+	beq .noAdjust
+	cmp #2
+	beq .adjustSpeed2
+	cmp #3
+	beq .adjustSpeed3
+	jmp .noAdjust
+.adjustSpeed2:
+	lda #80
+	db $2c
+.adjustSpeed3:
+	lda #160
+	inc16 player1_bomb_ptr
+.noAdjust:
 	lda player1_direction
 	sta player1_bomb_dir
-	lda #2
-	sta player1_bomb_spd_y
+
 .dontStartBomb:
 	rts
