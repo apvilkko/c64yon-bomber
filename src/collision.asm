@@ -70,9 +70,7 @@ CheckCollision:
 	beq .outside
 
 	; increase score (block at first row (=12) equal one point and +1 onwards)
-	lda temp2
-	sec
-	sbc #11
+	; a holds the current character which is the same as score
 	sed
 	inc16_x player1_score
 	cld
@@ -85,11 +83,41 @@ CheckCollision:
 .groundCollision:
 	lda #NOT_BOMBING
 	sta player1_bombing,x
+	jsr CheckBlockDrops
 	jmp .exit
 .outside:
 	lda #NOT_BOMBING
 	sta player1_bombing,x
+	jsr CheckBlockDrops
 	jmp .exit
 .noCollision:
 .exit:
+	rts
+
+CheckBlockDrops:
+	; TODO
+	rts
+
+	pushall
+	; check one block above = -40
+	dec16 temp16,#40
+	lda (temp16),y
+	cmp #EMPTY_BLOCK
+	beq .nothingToDo
+	cmp #GROUND
+	beq .nothingToDo
+	; move this block one down = +40
+	tax
+	; erase this block
+	lda #EMPTY_BLOCK
+	sta (temp16),y
+
+	; pointer back +40
+	lda #40
+	inc16 temp16
+	txa
+	sta (temp16),y
+
+.nothingToDo:
+	pullall
 	rts

@@ -1,11 +1,6 @@
+	; player data 2*16 bytes
 	dsect
-	org $02
-
-scanresult:			blk 8
-tick:				byt
-subtick:			byt
-spr_x_msb:			byt
-
+	org $60
 player1_x:			blk 2
 player1_y:			byt
 player1_direction:	byt
@@ -33,12 +28,22 @@ player2_bomb_dir:	byt
 player2_bomb_thr:	byt
 player2_bomb_age:	byt
 player2_score:		blk 2
+	dend
 
+	dsect
+	org $57
+scanresult:			blk 8
+spr_x_msb:			byt
+	dend
 
+	dsect
+	org $f8
 temp:				byt
 temp2:				byt
 temp16:				blk 2
 temp16_2:			blk 2
+tick:				byt
+subtick:			byt
 	dend
 
 X_MIN = 20

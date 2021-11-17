@@ -68,12 +68,13 @@ AdvanceBomb:
 	; index calculation:
 	; (x ? 0 : 4) + age * 8 + subtick
 
-	sta16_x2 temp16, player1_bomb_ptr+1, player1_bomb_ptr
 	cpx #0
 	beq .noOffset
-	txa
-	inc16 temp16
+	sta16 temp16, player2_bomb_ptr+1, player2_bomb_ptr
+	jmp .getX
 .noOffset:
+	sta16 temp16, player1_bomb_ptr+1, player1_bomb_ptr
+.getX:
 	; x velocity
 	lda player1_bomb_age,x
 	; max out age at last index of our table data (=9)
@@ -87,12 +88,15 @@ AdvanceBomb:
 	clc
 	adc subtick
 
-	ldy #0
+	tay
 	lda (temp16),y
 	sta temp
 
 	; y velocity is read from position of x velocity + 4
-	ldy #4
+	tya
+	clc
+	adc #4
+	tay
 	lda (temp16),y
 	sta temp2
 	

@@ -133,3 +133,19 @@ rand3	macro
 	bcs \2
 	jmp \3
 	endmacro
+
+pushall	macro
+	pha
+	tya
+	pha
+	txa
+	pha
+	endmacro
+
+pullall	macro
+	pla
+	tax
+	pla
+	tay
+	pla
+	endmacro

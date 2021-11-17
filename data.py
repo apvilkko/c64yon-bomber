@@ -77,7 +77,7 @@ def read_level():
             joined = ','.join(data)
             out.append(f'\tdb {joined}')
 
-yspeed = -5
+yspeed = -10
 
 speeds = [(30,yspeed),(60,yspeed),(90,yspeed)]
 # normalize velocities so that max speed equals 3
