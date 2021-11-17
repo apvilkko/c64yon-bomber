@@ -33,34 +33,56 @@ def clamp(value):
         ret = x
     return ret
 
-value_table = {
-    0: [0,0,0,0],
-    1: [1,0,0,0],
-    2: [1,0,1,0],
-    3: [1,1,1,0],
-    4: [1,1,1,1],
-    5: [2,1,1,1],
-    6: [2,1,2,1],
-    7: [2,2,2,1],
-    8: [2,2,2,2],
-    10: [3,2,3,2],
-    11: [3,3,3,2],
-    12: [3,3,3,3]
-}
+# divide value evenly in a array, e.g. 10 = [3,2,3,2]
+def get_arr_value(x):
+    out = [0,0,0,0]
+    i = 0
+    j = 0
+    while sum(out) < x:
+        out[i] = out[i] + 1
+        i = i + 2
+        if i > 3:
+            if j % 2:
+                i = 0
+            else:
+                i = 1
+            j = j + 1
+    return out
 
 def encode_value(value):
-    ret = value_table.get(value, None)
-    if ret is None:
-        exit(str(value) + ' not in table')
+    ret = get_arr_value(value)
     return ret
 
-yspeed = -10
+out = []
+
+GROUND = 102
+SPACE = 32
+def translate_block(x):
+    if x == '#':
+        return GROUND
+    elif x == ' ' or x == '0':
+        return SPACE
+    elif ord(x) >= ord('A') and ord(x) <= ord('Z'):
+        return ord(x) - ord('A') + 1
+    return x
+
+def read_level():
+    out.append('Level:')
+    with open('src/level.txt', 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            data = [str(translate_block(x)) for x in line.strip()]
+            if len(line) < 10:
+                data = [str(SPACE)] * 40
+            joined = ','.join(data)
+            out.append(f'\tdb {joined}')
+
+yspeed = -5
 
 speeds = [(30,yspeed),(60,yspeed),(90,yspeed)]
 # normalize velocities so that max speed equals 3
 max_speed = max([x[0] for x in speeds])
 coef = max_speed / 3.0
-out = []
 count = 1
 for speed in speeds:
     res = calculate_speed_table(speed[0], speed[1])
@@ -74,6 +96,7 @@ for speed in speeds:
     count = count + 1
     for r in encoded:
         out.append('\tdb ' + ','.join([str(x) for x in r[0]]) + ',' + ','.join([str(y) for y in r[1]]))
+read_level()
 
 with open('src/generated.asm', 'w') as f:
     f.write('\n'.join(out))

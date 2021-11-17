@@ -1,21 +1,22 @@
+; in: x = player data offset
 CheckCollision:
 	; screen coords 320x200 to char coords 40x25
 	; x: 320/40 = 8
 	; y: 200/25 = 8
 
-	lda player1_bombing
+	lda player1_bombing,x
 	cmp #NOT_BOMBING
 	bne .continue
 	rts
 .continue:
 
-	lda player1_bomb_y
+	lda player1_bomb_y,x
 	sec
 	sbc #SPR_Y_OFFSET
 	to_char_coord
 	sta temp2
 
-	sta16 temp16_2,player1_bomb_x+1,player1_bomb_x
+	sta16_x2 temp16_2,player1_bomb_x+1,player1_bomb_x
 	dec16 temp16_2,#SPR_X_OFFSET
 	to_char_coord_16 temp16_2
 	lda temp16_2
@@ -30,6 +31,9 @@ CheckCollision:
 	and #%10000000
 	bne .outside
 
+	txa
+	tay
+	
 	lda #0
 	sta temp16
 	sta temp16+1
@@ -39,6 +43,9 @@ CheckCollision:
 	inc16 temp16
 	dex
 	bpl .loopY
+
+	tya
+	tax
 
 	; temp16 now holds screen ram y offset from 0, add $0400 to get the absolute screen address
 	; only need to add high byte ($04)
@@ -59,7 +66,7 @@ CheckCollision:
 	; bomb collided with scored block
 	
 	; check that bomb can't go through any more blocks -> dismiss bomb
-	dec player1_bomb_thr
+	dec player1_bomb_thr,x
 	beq .outside
 
 	; increase score (block at first row (=12) equal one point and +1 onwards)
@@ -67,7 +74,7 @@ CheckCollision:
 	sec
 	sbc #11
 	sed
-	inc16 player1_score
+	inc16_x player1_score
 	cld
 
 	; erase current block
@@ -77,11 +84,11 @@ CheckCollision:
 	jmp .exit
 .groundCollision:
 	lda #NOT_BOMBING
-	sta player1_bombing
+	sta player1_bombing,x
 	jmp .exit
 .outside:
 	lda #NOT_BOMBING
-	sta player1_bombing
+	sta player1_bombing,x
 	jmp .exit
 .noCollision:
 .exit:

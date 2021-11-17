@@ -22,18 +22,30 @@ DrawLevel:
 	bne .loopScreen
 	rts
 
+; in: x = player data offset
 DrawScore:
 	; ones
-	lda player1_score
+	lda player1_score,x
 	and #$0f
 	clc
 	adc #PETSCII_NUMBER_OFFSET
 	
-	ldx #91 ; magic index to correct place for score
-	sta SCREEN_MEM,x
+	ldy #91 ; magic index to correct place for score
+	; adjust position further if player is not 1
+	cpx #0
+	beq .noOffset
+	sta temp
+	stx temp2
+	tya
+	clc
+	adc #26
+	tay
+	lda temp
+.noOffset:
+	sta SCREEN_MEM,y
 
 	; tens
-	lda player1_score
+	lda player1_score,x
 	and #$f0
 	lsr
 	lsr
@@ -42,20 +54,20 @@ DrawScore:
 	clc
 	adc #PETSCII_NUMBER_OFFSET
 
-	dex
-	sta SCREEN_MEM,x
+	dey
+	sta SCREEN_MEM,y
 	
 	; hundreds
-	lda player1_score+1
+	lda player1_score+1,x
 	and #$0f
 	clc
 	adc #PETSCII_NUMBER_OFFSET
 	
-	dex
-	sta SCREEN_MEM,x
+	dey
+	sta SCREEN_MEM,y
 	
 	; thousands
-	lda player1_score+1
+	lda player1_score+1,x
 	and #$f0
 	lsr
 	lsr
@@ -64,8 +76,8 @@ DrawScore:
 	clc
 	adc #PETSCII_NUMBER_OFFSET
 	
-	dex
-	sta SCREEN_MEM,x
+	dey
+	sta SCREEN_MEM,y
 
 	rts
 
@@ -80,36 +92,66 @@ EndSpriteDraw:
 	rts
 
 HandleSpriteVisibility:
-	ldx #01
+	ldx #%00000101
 	lda player1_bombing
 	cmp #NOT_BOMBING
 	beq .dontDrawBomb1
 	txa
-	eor #02
+	eor #%00000010
 	tax
 .dontDrawBomb1:
+	lda player2_bombing
+	cmp #NOT_BOMBING
+	beq .dontDrawBomb2
+	txa
+	eor #%00001000
+	tax
+.dontDrawBomb2:
 	stx SPRITE_ENABLE
 	rts
 
-DrawBomb1:
-	lda player1_bomb_y
-	sta SPRITE_1_Y
-	lda player1_bomb_x+1
+; in: x = player data offset
+DrawPlayer:
+	ldy #0
+	cpx #0
+	beq .noOffset
+	ldy #4
+.noOffset:
+	lda player1_y,x
+	sta SPRITE_0_Y,y
+	lda player1_x+1,x
 	and #%00000001
+	cpx #0
+	beq .noMsbOffset
 	asl
+	asl
+.noMsbOffset:
 	ora spr_x_msb
 	sta spr_x_msb
-	lda player1_bomb_x
-	sta SPRITE_1_X
+	lda player1_x,x
+	sta SPRITE_0_X,y
 	rts
 
-DrawPlayer1:
-	lda player1_y
-	sta SPRITE_0_Y
-	lda player1_x+1
+; in: x = player data offset
+DrawBomb:
+	ldy #0
+	cpx #0
+	beq .noOffset
+	ldy #4
+.noOffset:
+	lda player1_bomb_y,x
+	sta SPRITE_1_Y,y
+	; check for x msb
+	lda player1_bomb_x+1,x
 	and #%00000001
+	asl
+	cpx #0
+	beq .noMsbOffset
+	asl
+	asl
+.noMsbOffset:
 	ora spr_x_msb
 	sta spr_x_msb
-	lda player1_x
-	sta SPRITE_0_X
+	lda player1_bomb_x,x
+	sta SPRITE_1_X,y
 	rts

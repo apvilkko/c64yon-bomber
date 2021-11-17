@@ -1,39 +1,35 @@
-AdvancePlayer1:
-	lda player1_direction
+; in: x = player data offset
+AdvancePlayer:
+	lda player1_direction,x
 	beq .increaseX
-	dec16 player1_x,player1_speed
+	dec16_x_x player1_x,player1_speed
 	jmp .checkExitScreen
 .increaseX:
-	lda player1_speed
-	inc16 player1_x
+	lda player1_speed,x
+	inc16_x player1_x
 .checkExitScreen:
 	sta16 temp16,#1,#X_MAX
-	gte_branch16 player1_x,temp16,ExitedScreen
+	sta16_x2 temp16_2,player1_x+1,player1_x
+	gte_branch16 temp16_2,temp16,ExitedScreen
 	sta16 temp16,#0,#X_MIN
-	gte_branch16 temp16,player1_x,ExitedScreen
+	gte_branch16 temp16,temp16_2,ExitedScreen
 	jmp ExitAdvancePlayer
 ExitedScreen:
 	; change direction
-	lda player1_direction
+	lda player1_direction,x
 	bne .leftToRight
 .rightToLeft:
-	sta16 player1_x,#1,#X_MAX
+	sta16_x player1_x,#1,#X_MAX
 	lda #1
-	sta player1_direction
+	sta player1_direction,x
 	jmp ExitAdvancePlayer
 .leftToRight:
-	sta16 player1_x,#0,#X_MIN
+	sta16_x player1_x,#0,#X_MIN
 	lda #0
-	sta player1_direction
+	sta player1_direction,x
 
 	; randomize ship/speed
-	jsr Rand
-	lsr ; clamp random number to 0-127
-	cmp #84
-	bcs .option1
-	cmp #42
-	bcs .option2
-	jmp .option3
+	rand3 .option1,.option2,.option3
 .option1:
 	lda #1
 	db $2c
@@ -42,16 +38,10 @@ ExitedScreen:
 	db $2c
 .option3:
 	lda #3
-	sta player1_speed
+	sta player1_speed,x
 
 	; randomize y pos
-	jsr Rand
-	lsr ; clamp random number to 0-127
-	cmp #84
-	bcs .yoption1
-	cmp #42
-	bcs .yoption2
-	jmp .yoption3
+	rand3 .yoption1,.yoption2,.yoption3
 .yoption1:
 	lda #YPOS_1
 	db $2c
@@ -60,25 +50,32 @@ ExitedScreen:
 	db $2c
 .yoption3:
 	lda #YPOS_3
-	sta player1_y
+	sta player1_y,x
 
 ExitAdvancePlayer:
 	rts
 
-AdvanceBomb1:
-	lda player1_bombing
+; in: x = player data offset
+AdvanceBomb:
+	lda player1_bombing,x
 	cmp #NOT_BOMBING
 	beq .exit
 
 	; get the current velocity from speed table
-	; player1_bomb_ptr is the table base address
+	; player1_bomb_ptr => temp16 is the table base address, offset with x
 	; player1_bomb_age is the current index or time
 	; subtick denotes the subdivision index
 	; index calculation:
 	; (x ? 0 : 4) + age * 8 + subtick
 
+	sta16_x2 temp16, player1_bomb_ptr+1, player1_bomb_ptr
+	cpx #0
+	beq .noOffset
+	txa
+	inc16 temp16
+.noOffset:
 	; x velocity
-	lda player1_bomb_age
+	lda player1_bomb_age,x
 	; max out age at last index of our table data (=9)
 	cmp #10
 	bcc .ageOk
@@ -89,30 +86,28 @@ AdvanceBomb1:
 	asl
 	clc
 	adc subtick
-	tay
-	lda (player1_bomb_ptr),y
+
+	ldy #0
+	lda (temp16),y
 	sta temp
 
 	; y velocity is read from position of x velocity + 4
-	tya
-	clc
-	adc #4
-	tay
-	lda (player1_bomb_ptr),y
+	ldy #4
+	lda (temp16),y
 	sta temp2
 	
-	lda player1_bomb_dir
+	lda player1_bomb_dir,x
 	beq .leftToRight
-	dec16 player1_bomb_x,temp
+	dec16_x player1_bomb_x,temp
 	jmp .handleY
 .leftToRight:
 	lda temp
-	inc16 player1_bomb_x
+	inc16_x player1_bomb_x
 .handleY:
 	lda temp2
 	clc
-	adc player1_bomb_y
-	sta player1_bomb_y
+	adc player1_bomb_y,x
+	sta player1_bomb_y,x
 .exit:
 	rts
 
@@ -121,5 +116,6 @@ PerFrame:
 	and #%00000111
 	bne .exit
 	inc player1_bomb_age
+	inc player2_bomb_age
 .exit:
 	rts

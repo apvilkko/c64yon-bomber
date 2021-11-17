@@ -130,16 +130,33 @@ Isr:
 	and subtick
 	sta subtick
 	jsr ReadKeyboard
+	ldx #0
+	jsr CheckKeys
+	ldx #PLAYER_DATA_SIZE
 	jsr CheckKeys
 	jsr PerFrame
-	jsr AdvancePlayer1
-	jsr AdvanceBomb1
+	
+	ldx #0
+	jsr AdvancePlayer
+	jsr AdvanceBomb
 	jsr CheckCollision
+	ldx #PLAYER_DATA_SIZE
+	jsr AdvancePlayer
+	jsr AdvanceBomb
+	jsr CheckCollision
+	
 	jsr HandleSpriteVisibility
 	jsr StartSpriteDraw
-	jsr DrawPlayer1
-	jsr DrawBomb1
+	
+	ldx #0
+	jsr DrawPlayer
+	jsr DrawBomb
 	jsr DrawScore
+	ldx #PLAYER_DATA_SIZE
+	jsr DrawPlayer
+	jsr DrawBomb
+	jsr DrawScore
+	
 	jsr EndSpriteDraw
 
 	jmp stdIntRestore
@@ -159,5 +176,4 @@ Isr:
 ; DATA
 ;================================
 
-	include "level.asm"
 	include "generated.asm"
