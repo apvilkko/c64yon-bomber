@@ -144,12 +144,22 @@ CheckBlockDrops:
 
 ; in: A = x column
 ProcessColumn:
+	sta temp3
 	pushall
-	; start checking at y=12 (first block line)
-	tay ; Y holds the x coord
-	lda #12
+	ldy temp3 ; Y holds the x coord
+	
+	; check rows from y=19 to 12
+	lda #19
 	sta temp2
 	jsr GetScreenRamPos
+
+	; advance to first non-ground coord (near the level edges ground is higher)
+.checkGround:
+	lda (temp16),y
+	cmp #GROUND
+	bne pcCheckBlock
+	dec16 temp16,#40
+	jmp .checkGround
 
 pcCheckBlock:
 	; current block
@@ -157,37 +167,29 @@ pcCheckBlock:
 	cmp #GROUND
 	beq pcExit
 	cmp #EMPTY_BLOCK
-	beq pcNext
+	bne pcNext
 	
-	; current block is not empty, check below it
+	; current block is empty, search first non-empty upwards
 
-	sta temp3 ; remember block in case we need to move it
-
-	lda #40
-	inc16 temp16
-	lda (temp16),y
+	sta16 temp16_2,temp16+1,temp16
+.searchUpwards:
+	dec16 temp16_2,#40
+	lda (temp16_2),y
 	cmp #EMPTY_BLOCK
-	beq pcCanMoveHere
-	
-	; block below is not empty, continue loop from next block
-	; pointer has already been increased
-	jmp pcCheckBlock
+	beq .searchUpwards
+	cmp #GROUND
+	beq pcNext ; break from upwards search, continue outer loop
 
-pcCanMoveHere:
-	; set the block to the empty space
-	lda temp3
-	sta (temp16),y
+	; found non-empty block from above
 	
-	; erase the original block
-	dec16 temp16,#40
+	; move found block to empty block space
+	sta (temp16),y
+	; blank found block space
 	lda #EMPTY_BLOCK
-	sta (temp16),y
-
-	; we can continue loop
-
+	sta (temp16_2),y
+	; continue outer loop
 pcNext:
-	lda #40
-	inc16 temp16
+	dec16 temp16,#40
 	jmp pcCheckBlock
 
 pcExit:
