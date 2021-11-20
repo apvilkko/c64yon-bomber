@@ -116,6 +116,18 @@ ClearSid:
 	rts
 
 Loop:
+	lda tick
+	and #$0f
+	beq .maybeProcessBlocks
+	jmp Loop
+.maybeProcessBlocks:
+	lda player1_bombing
+	cmp #NOT_BOMBING
+	bne Loop
+	lda player2_bombing
+	cmp #NOT_BOMBING
+	bne Loop
+	jsr CheckBlockDrops	
 	jmp Loop
 
 ;================================

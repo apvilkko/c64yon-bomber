@@ -17,6 +17,13 @@ InitData:
 	sta player2_speed
 	sta16 player1_score,#0,#0
 	sta16 player2_score,#0,#0
+
+	ldx #$0f
+	lda #$ff
+.loop:
+	sta player1_block_hits,x
+	dex
+	bpl .loop
 	
 	; Sprite #0: located at $2000 / $40 = $80
 	lda #$80

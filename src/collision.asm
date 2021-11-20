@@ -31,28 +31,9 @@ CheckCollision:
 	and #%10000000
 	bne .outside
 
-	txa
-	tay
-	
-	lda #0
-	sta temp16
-	sta temp16+1
-	ldx temp2
-.loopY
-	lda #40
-	inc16 temp16
-	dex
-	bpl .loopY
-
-	tya
-	tax
-
-	; temp16 now holds screen ram y offset from 0, add $0400 to get the absolute screen address
-	; only need to add high byte ($04)
-	lda #>SCREEN_MEM
-	clc
-	adc temp16+1
-	sta temp16+1
+	pushx
+	jsr GetScreenRamPos
+	pullx
 
 	; get the char at temp,temp2 from screen memory
 	ldy temp
@@ -78,6 +59,7 @@ CheckCollision:
 	; erase current block
 	lda #EMPTY_BLOCK
 	sta (temp16),y
+	jsr StoreDestroyedBlock
 
 	jmp .exit
 .groundCollision:
@@ -94,30 +76,120 @@ CheckCollision:
 .exit:
 	rts
 
-CheckBlockDrops:
-	; TODO
+; in: temp2 = y char coord
+; nukes x
+GetScreenRamPos:
+	lda #0
+	sta temp16
+	sta temp16+1
+	ldx temp2
+.loopY:
+	lda #40
+	inc16 temp16
+	dex
+	bne .loopY
+
+	; temp16 now holds screen ram y offset from 0, add $0400 to get the absolute screen address
+	; only need to add high byte ($04)
+	lda #>SCREEN_MEM
+	clc
+	adc temp16+1
+	sta temp16+1
 	rts
 
+; in: x = player data offset, temp = x char coord
+StoreDestroyedBlock:
+	pushx
+	; offset is half (=8) in block hits data
+	txa
+	lsr
+	tax
+	ldy #7
+.loop:
+	lda player1_block_hits,x
+	cmp #$ff
+	beq .okToStore
+	sta temp3
+	inx
+	dey
+	bmi .exit
+	jmp .loop
+.okToStore:
+	; if same value already stored, no need to store again
+	lda temp3
+	cmp temp
+	beq .exit
+	lda temp
+	sta player1_block_hits,x
+.exit:
+	pullx
+	rts
+
+CheckBlockDrops:
+	ldx #$0f
+.more:
+	lda player1_block_hits,x
+	cmp #$ff
+	beq .next
+	jsr ProcessColumn
+	; this one processed, reset
+	lda #$ff
+	sta player1_block_hits,x
+.next:
+	dex
+	bmi .done
+	jmp .more
+.done:
+	rts
+
+; in: A = x column
+ProcessColumn:
 	pushall
-	; check one block above = -40
-	dec16 temp16,#40
+	; start checking at y=12 (first block line)
+	tay ; Y holds the x coord
+	lda #12
+	sta temp2
+	jsr GetScreenRamPos
+
+pcCheckBlock:
+	; current block
+	lda (temp16),y
+	cmp #GROUND
+	beq pcExit
+	cmp #EMPTY_BLOCK
+	beq pcNext
+	
+	; current block is not empty, check below it
+
+	sta temp3 ; remember block in case we need to move it
+
+	lda #40
+	inc16 temp16
 	lda (temp16),y
 	cmp #EMPTY_BLOCK
-	beq .nothingToDo
-	cmp #GROUND
-	beq .nothingToDo
-	; move this block one down = +40
-	tax
-	; erase this block
+	beq pcCanMoveHere
+	
+	; block below is not empty, continue loop from next block
+	; pointer has already been increased
+	jmp pcCheckBlock
+
+pcCanMoveHere:
+	; set the block to the empty space
+	lda temp3
+	sta (temp16),y
+	
+	; erase the original block
+	dec16 temp16,#40
 	lda #EMPTY_BLOCK
 	sta (temp16),y
 
-	; pointer back +40
+	; we can continue loop
+
+pcNext:
 	lda #40
 	inc16 temp16
-	txa
-	sta (temp16),y
+	jmp pcCheckBlock
 
-.nothingToDo:
+pcExit:
 	pullall
 	rts

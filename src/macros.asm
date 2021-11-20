@@ -134,6 +134,16 @@ rand3	macro
 	jmp \3
 	endmacro
 
+pushx	macro
+	txa
+	pha
+	endmacro
+
+pullx	macro
+	pla
+	tax
+	endmacro
+
 pushall	macro
 	pha
 	tya

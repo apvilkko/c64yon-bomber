@@ -1,3 +1,14 @@
+	dsect
+	org $02
+temp3:				byt
+	dend
+
+	dsect
+	org $40
+player1_block_hits:	blk 8
+player2_block_hits:	blk 8
+	dend
+
 	; player data 2*16 bytes
 	dsect
 	org $60
