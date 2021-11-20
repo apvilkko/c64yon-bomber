@@ -1,6 +1,8 @@
 	dsect
 	org $02
 temp3:				byt
+sfx1_age:			byt
+sfx2_age:			byt
 	dend
 
 	dsect

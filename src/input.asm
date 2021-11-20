@@ -40,8 +40,8 @@ CheckKeys:
 	cpx #0
 	beq .checkInput
 
-	; player 2: just fire always if possible for now
-	jmp .checkCanBomb
+	; player 2: start firing randomly
+	rand3 .checkCanBomb,.dontStartBomb,.dontStartBomb
 
 .checkInput:
 	lda #%00010000 ; test space key

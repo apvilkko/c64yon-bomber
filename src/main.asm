@@ -105,7 +105,7 @@ ClearSid:
 	dex
 	bne .clearloop
 
-	lda #%00001111	; volume to max
+	lda #%10001111	; volume to max, mute voice 3
 	sta SID_FLT_VM
 
 	jsr InitData
@@ -171,6 +171,8 @@ Isr:
 	
 	jsr EndSpriteDraw
 
+	jsr PlaySounds
+
 	jmp stdIntRestore
 
 ;================================
@@ -183,6 +185,7 @@ Isr:
 	include "input.asm"
 	include "draw.asm"
 	include "gamelogic.asm"
+	include "sound.asm"
 
 ;================================
 ; DATA

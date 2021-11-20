@@ -18,6 +18,10 @@ InitData:
 	sta16 player1_score,#0,#0
 	sta16 player2_score,#0,#0
 
+	lda #$fe
+	sta sfx1_age
+	sta sfx2_age
+
 	ldx #$0f
 	lda #$ff
 .loop:

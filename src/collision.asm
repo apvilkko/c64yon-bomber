@@ -26,10 +26,10 @@ CheckCollision:
 	; temp & temp2 are now char coords x & y
 
 	; check bomb exiting screen in x direction
-	gte_branch temp,#40,.outside
+	gte_branch temp,#40,.stopBombing
 	lda temp
 	and #%10000000
-	bne .outside
+	bne .stopBombing
 
 	pushx
 	jsr GetScreenRamPos
@@ -42,13 +42,13 @@ CheckCollision:
 	cmp #EMPTY_BLOCK
 	beq .noCollision
 	cmp #GROUND
-	beq .groundCollision
+	beq .stopBombing
 
 	; bomb collided with scored block
 	
 	; check that bomb can't go through any more blocks -> dismiss bomb
 	dec player1_bomb_thr,x
-	beq .outside
+	beq .stopBombing
 
 	; increase score (block at first row (=12) equal one point and +1 onwards)
 	; a holds the current character which is the same as score
@@ -56,22 +56,26 @@ CheckCollision:
 	inc16_x player1_score
 	cld
 
+	; start sfx
+	lda #0
+	cpx #0
+	beq .player1Sfx
+	sta sfx2_age
+	jmp .afterSfx
+.player1Sfx:
+	sta sfx1_age
+.afterSfx:
+
 	; erase current block
 	lda #EMPTY_BLOCK
 	sta (temp16),y
 	jsr StoreDestroyedBlock
 
 	jmp .exit
-.groundCollision:
+.stopBombing:
 	lda #NOT_BOMBING
 	sta player1_bombing,x
 	jsr CheckBlockDrops
-	jmp .exit
-.outside:
-	lda #NOT_BOMBING
-	sta player1_bombing,x
-	jsr CheckBlockDrops
-	jmp .exit
 .noCollision:
 .exit:
 	rts
