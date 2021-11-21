@@ -1,8 +1,16 @@
 	dsect
 	org $02
 temp3:				byt
+	dend
+
+	dsect 
+	org $20
 sfx1_age:			byt
+sfx1_fall:			byt
+unused:				blk 14
+
 sfx2_age:			byt
+sfx2_fall:			byt
 	dend
 
 	dsect
@@ -71,6 +79,11 @@ PLAYER_DATA_SIZE = 16
 YPOS_1 = 96
 YPOS_2 = 108
 YPOS_3 = 120
+
+FALL_NOT_FALLING = 0
+FALL_FALLING = 1
+FALL_START = 2
+FALL_STOP = 3
 
 ; how much coords need to be decreased for character coord matching
 SPR_X_OFFSET = 24

@@ -55,6 +55,8 @@ CheckKeys:
 	lda #0
 	sta player1_bombing,x
 	sta player1_bomb_age,x
+	lda #FALL_START
+	sta sfx1_fall,x
 
 	; randomize bomb effectiveness
 	rand3 .option1,.option2,.option3

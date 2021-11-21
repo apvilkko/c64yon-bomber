@@ -45,6 +45,8 @@ CheckCollision:
 	beq .stopBombing
 
 	; bomb collided with scored block
+	lda #FALL_STOP
+	sta sfx1_fall,x
 	
 	; check that bomb can't go through any more blocks -> dismiss bomb
 	dec player1_bomb_thr,x
@@ -56,16 +58,6 @@ CheckCollision:
 	inc16_x player1_score
 	cld
 
-	; start sfx
-	lda #0
-	cpx #0
-	beq .player1Sfx
-	sta sfx2_age
-	jmp .afterSfx
-.player1Sfx:
-	sta sfx1_age
-.afterSfx:
-
 	; erase current block
 	lda #EMPTY_BLOCK
 	sta (temp16),y
@@ -75,6 +67,8 @@ CheckCollision:
 .stopBombing:
 	lda #NOT_BOMBING
 	sta player1_bombing,x
+	lda #FALL_STOP
+	sta sfx1_fall,x
 	jsr CheckBlockDrops
 .noCollision:
 .exit:

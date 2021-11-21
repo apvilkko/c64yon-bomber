@@ -116,25 +116,10 @@ AdvanceBomb:
 	rts
 
 PerFrame:
-	lda sfx1_age
-	cmp #$ff
-	beq .skipSfx1
-	cmp #$fe
-	beq .skipSfx1
-	inc sfx1_age
-.skipSfx1:
-	lda sfx2_age
-	cmp #$ff
-	beq .skipSfx2
-	cmp #$fe
-	beq .skipSfx2
-	inc sfx2_age
-.skipSfx2:
 	lda tick
 	and #%00000111
 	bne .exit
 	inc player1_bomb_age
 	inc player2_bomb_age
 .exit:
-	jsr AdvanceSounds
 	rts

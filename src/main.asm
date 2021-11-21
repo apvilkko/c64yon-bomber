@@ -164,14 +164,14 @@ Isr:
 	jsr DrawPlayer
 	jsr DrawBomb
 	jsr DrawScore
+	jsr PlaySounds
 	ldx #PLAYER_DATA_SIZE
 	jsr DrawPlayer
 	jsr DrawBomb
 	jsr DrawScore
+	jsr PlaySounds
 	
 	jsr EndSpriteDraw
-
-	jsr PlaySounds
 
 	jmp stdIntRestore
 

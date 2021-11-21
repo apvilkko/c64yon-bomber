@@ -10,6 +10,9 @@ InitData:
 	sta16 player2_x,#1,#X_MAX
 	lda #0
 	sta player1_direction
+	lda #FALL_NOT_FALLING
+	sta sfx1_fall
+	sta sfx2_fall
 	lda #1
 	sta player2_direction
 	lda #2
@@ -18,7 +21,7 @@ InitData:
 	sta16 player1_score,#0,#0
 	sta16 player2_score,#0,#0
 
-	lda #$fe
+	lda #$ff
 	sta sfx1_age
 	sta sfx2_age
 
