@@ -38,20 +38,20 @@ ReadKeyboard:
 ; in: x = player data offset
 CheckKeys:
 	cpx #0
-	beq .checkInput
+	beq @checkInput
 
 	; player 2: start firing randomly
-	rand3 .checkCanBomb,.dontStartBomb,.dontStartBomb
+	rand3 @checkCanBomb,@dontStartBomb,@dontStartBomb
 
-.checkInput:
+@checkInput:
 	lda #%00010000 ; test space key
 	and scanresult
-	bne .dontStartBomb
-.checkCanBomb:
+	bne @dontStartBomb
+@checkCanBomb:
 	lda player1_bombing,x
 	cmp #NOT_BOMBING
-	bne .dontStartBomb
-.startBombing:
+	bne @dontStartBomb
+@startBombing:
 	lda #0
 	sta player1_bombing,x
 	sta player1_bomb_age,x
@@ -59,14 +59,14 @@ CheckKeys:
 	sta sfx1_fall,x
 
 	; randomize bomb effectiveness
-	rand3 .option1,.option2,.option3
-.option1:
+	rand3 @option1,@option2,@option3
+@option1:
 	lda #4
-	db $2c
-.option2:
+	.byte $2c
+@option2:
 	lda #5
-	db $2c
-.option3:
+	.byte $2c
+@option3:
 	lda #6
 	sta player1_bomb_thr,x
 
@@ -82,21 +82,21 @@ CheckKeys:
 
 	lda player1_speed,x
 	cmp #1
-	beq .noAdjust
+	beq @noAdjust
 	cmp #2
-	beq .adjustSpeed2
+	beq @adjustSpeed2
 	cmp #3
-	beq .adjustSpeed3
-	jmp .noAdjust
-.adjustSpeed2:
+	beq @adjustSpeed3
+	jmp @noAdjust
+@adjustSpeed2:
 	lda #80
-	db $2c
-.adjustSpeed3:
+	.byte $2c
+@adjustSpeed3:
 	lda #160
 	inc16_x player1_bomb_ptr
-.noAdjust:
+@noAdjust:
 	lda player1_direction,x
 	sta player1_bomb_dir,x
 
-.dontStartBomb:
+@dontStartBomb:
 	rts

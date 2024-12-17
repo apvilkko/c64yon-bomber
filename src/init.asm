@@ -27,10 +27,10 @@ InitData:
 
 	ldx #$0f
 	lda #$ff
-.loop:
+@loop:
 	sta player1_block_hits,x
 	dex
-	bpl .loop
+	bpl @loop
 	
 	; Sprite #0: located at $2000 / $40 = $80
 	lda #$80

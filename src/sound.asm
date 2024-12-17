@@ -4,30 +4,30 @@ PlaySounds:
     ; increase age
     lda sfx1_age,x
 	cmp #$ff
-	beq .skipInc
+	beq @skipInc
 	inc sfx1_age,x
-.skipInc:
+@skipInc:
 
     lda sfx1_fall,x
     cmp #FALL_START
-    beq .doStartFall
+    beq @doStartFall
     cmp #FALL_STOP
-    beq .doStopFall
+    beq @doStopFall
     cmp #FALL_NOT_FALLING
-    beq .checkBombAge
+    beq @checkBombAge
     cmp #FALL_FALLING
-    beq .falling
-.checkBombAge:
+    beq @falling
+@checkBombAge:
     lda sfx1_age,x
     cmp #$ff
-    beq .done
+    beq @done
     cmp #5
-    beq .doOff
+    beq @doOff
     cmp #30
-    beq .resetBombAge
-    jmp .done
+    beq @resetBombAge
+    jmp @done
 
-.falling:
+@falling:
     jsr SetSidOffset
     lda player1_bomb_y,x
     lsr
@@ -38,14 +38,14 @@ PlaySounds:
     
     sta SID_V1_FREQ_2,y
 
-    jmp .done
+    jmp @done
 
-.doStartFall:
+@doStartFall:
     lda #FALL_FALLING
     sta sfx1_fall,x
     jsr StartDropEffect
-    jmp .done
-.doStopFall:
+    jmp @done
+@doStopFall:
     lda #FALL_NOT_FALLING
     sta sfx1_fall,x
     
@@ -60,26 +60,26 @@ PlaySounds:
     sta sfx1_age,x
     
     jsr StartBombExplosion
-    jmp .done
-.resetBombAge:
+    jmp @done
+@resetBombAge:
     lda #$ff
     sta sfx1_age,x
-    jmp .done
-.doOff:
+    jmp @done
+@doOff:
     jsr GateOff
-    jmp .done
-.bombFalling:
+    jmp @done
+@bombFalling:
     ; do nothing
-    jmp .done
-.done:
+    jmp @done
+@done:
     rts
 
 SetSidOffset:
     ldy #0 ; set y as SID regs offset
     cpx #0
-    beq .noAdjust
+    beq @noAdjust
     ldy #7
-.noAdjust:
+@noAdjust:
     rts
 
 StartDropEffect:

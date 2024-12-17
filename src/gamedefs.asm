@@ -1,71 +1,71 @@
-	dsect
-	org $02
-temp3:				byt
-	dend
+	.zeropage
+	.org $02
+temp3:				.res 1
+	
 
-	dsect 
-	org $20
-sfx1_age:			byt
-sfx1_fall:			byt
-unused:				blk 14
+	.zeropage
+	.org $20
+sfx1_age:			.res 1
+sfx1_fall:			.res 1
+unused:				.res 14
 
-sfx2_age:			byt
-sfx2_fall:			byt
-	dend
+sfx2_age:			.res 1
+sfx2_fall:			.res 1
+	
 
-	dsect
-	org $40
-player1_block_hits:	blk 8
-player2_block_hits:	blk 8
-	dend
+	.zeropage
+	.org $40
+player1_block_hits:	.res 8
+player2_block_hits:	.res 8
+	
 
 	; player data 2*16 bytes
-	dsect
-	org $60
-player1_x:			blk 2
-player1_y:			byt
-player1_direction:	byt
-player1_speed:		byt
-player1_bombing:	byt
-player1_bomb_x:		blk 2
-player1_bomb_ptr:	blk 2
-player1_bomb_y:		byt
-player1_bomb_dir:	byt
+	.zeropage
+	.org $60
+player1_x:			.res 2
+player1_y:			.res 1
+player1_direction:	.res 1
+player1_speed:		.res 1
+player1_bombing:	.res 1
+player1_bomb_x:		.res 2
+player1_bomb_ptr:	.res 2
+player1_bomb_y:		.res 1
+player1_bomb_dir:	.res 1
 ; counter for how many boulders the current bomb can go through
-player1_bomb_thr:	byt
-player1_bomb_age:	byt
+player1_bomb_thr:	.res 1
+player1_bomb_age:	.res 1
 ; score in 4-digit decimal
-player1_score:		blk 2
+player1_score:		.res 2
 
-player2_x:			blk 2
-player2_y:			byt
-player2_direction:	byt
-player2_speed:		byt
-player2_bombing:	byt
-player2_bomb_x:		blk 2
-player2_bomb_ptr:	blk 2
-player2_bomb_y:		byt
-player2_bomb_dir:	byt
-player2_bomb_thr:	byt
-player2_bomb_age:	byt
-player2_score:		blk 2
-	dend
+player2_x:			.res 2
+player2_y:			.res 1
+player2_direction:	.res 1
+player2_speed:		.res 1
+player2_bombing:	.res 1
+player2_bomb_x:		.res 2
+player2_bomb_ptr:	.res 2
+player2_bomb_y:		.res 1
+player2_bomb_dir:	.res 1
+player2_bomb_thr:	.res 1
+player2_bomb_age:	.res 1
+player2_score:		.res 2
+	
 
-	dsect
-	org $57
-scanresult:			blk 8
-spr_x_msb:			byt
-	dend
+	.zeropage
+	.org $57
+scanresult:			.res 8
+spr_x_msb:			.res 1
+	
 
-	dsect
-	org $f8
-temp:				byt
-temp2:				byt
-temp16:				blk 2
-temp16_2:			blk 2
-tick:				byt
-subtick:			byt
-	dend
+	.zeropage
+	.org $f8
+temp:				.res 1
+temp2:				.res 1
+temp16:				.res 2
+temp16_2:			.res 2
+tick:				.res 1
+subtick:			.res 1
+	
 
 X_MIN = 20
 X_MAX = 320-256

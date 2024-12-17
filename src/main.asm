@@ -2,24 +2,24 @@
 ; LOADER
 ;================================
 
-	org $07ff
-	db $01,$08 ; prg header (BASIC program memory start $0801)
+	;.org $07ff
+	;.byte $01,$08 ; prg header (BASIC program memory start $0801)
 
 ; BASIC loader
-	db $0c,$08 ; pointer to next BASIC line
-	db $0a,$00 ; line number (10)
-	db $9e ; SYS token
-	text "11904" ; program start in decimal
-	db $00 ; end of basic line
-	db $00,$00 ; end of program
+	;.byte $0c,$08 ; pointer to next BASIC line
+	;.byte $0a,$00 ; line number (10)
+	;.byte $9e ; SYS token
+	;.byte "11904" ; program start in decimal
+	;.byte $00 ; end of basic line
+	;.byte $00,$00 ; end of program
 
 ;================================
 ; DEFINITIONS
 ;================================
 
-	include "defs.asm"
-	include "macros.asm"
-	include "gamedefs.asm"
+	.include "defs.asm"
+	.include "macros.asm"
+	.include "gamedefs.asm"
 
 ; methods
 clearScreen = $e544
@@ -29,34 +29,36 @@ stdIntRestore = $ea81
 ; SPRITE
 ;================================
 
-	org $2000
+	.segment "SPRITES"
 
 	; player
 
-	db $00,$78,$00,$00,$fc,$00,$01,$84
-	db $00,$01,$06,$00,$01,$12,$00,$01
-	db $02,$00,$01,$86,$00,$00,$7c,$00
-	db $00,$46,$f8,$1f,$c3,$80,$00,$82
-	db $00,$00,$81,$00,$00,$81,$00,$00
-	db $82,$00,$00,$82,$00,$00,$fe,$00
-	db $00,$ce,$00,$00,$82,$00,$00,$f3
-	db $e0,$01,$92,$20,$01,$f3,$e0,$03
+	.byte $00,$78,$00,$00,$fc,$00,$01,$84
+	.byte $00,$01,$06,$00,$01,$12,$00,$01
+	.byte $02,$00,$01,$86,$00,$00,$7c,$00
+	.byte $00,$46,$f8,$1f,$c3,$80,$00,$82
+	.byte $00,$00,$81,$00,$00,$81,$00,$00
+	.byte $82,$00,$00,$82,$00,$00,$fe,$00
+	.byte $00,$ce,$00,$00,$82,$00,$00,$f3
+	.byte $e0,$01,$92,$20,$01,$f3,$e0,$03
 
 	; bomb
-	db $e0,$00,$00,$40,$00,$00,$e0,$00
-	db $00,$e0,$00,$00,$40,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$03
+	.byte $e0,$00,$00,$40,$00,$00,$e0,$00
+	.byte $00,$e0,$00,$00,$40,$00,$00,$00
+	.byte $00,$00,$00,$00,$00,$00,$00,$00
+	.byte $00,$00,$00,$00,$00,$00,$00,$00
+	.byte $00,$00,$00,$00,$00,$00,$00,$00
+	.byte $00,$00,$00,$00,$00,$00,$00,$00
+	.byte $00,$00,$00,$00,$00,$00,$00,$00
+	.byte $00,$00,$00,$00,$00,$00,$00,$03
 
 ;================================
 ; PROGRAM START
 ;================================
 
-	org $2e80
+	.code
+	;.org $2e80
+	.reloc
 
 Start:
 	jsr Init
@@ -100,10 +102,10 @@ Init:
 ClearSid:
 	ldx #$1d
 	lda #$00
-.clearloop:
+@clearloop:
 	sta SID_REGS
 	dex
-	bne .clearloop
+	bne @clearloop
 
 	lda #%10001111	; volume to max, mute voice 3
 	sta SID_FLT_VM
@@ -118,9 +120,9 @@ ClearSid:
 Loop:
 	lda tick
 	and #$0f
-	beq .maybeProcessBlocks
+	beq @maybeProcessBlocks
 	jmp Loop
-.maybeProcessBlocks:
+@maybeProcessBlocks:
 	lda player1_bombing
 	cmp #NOT_BOMBING
 	bne Loop
@@ -179,16 +181,16 @@ Isr:
 ; SUBROUTINES
 ;================================
 
-	include "util.asm"
-	include "init.asm"
-	include "collision.asm"
-	include "input.asm"
-	include "draw.asm"
-	include "gamelogic.asm"
-	include "sound.asm"
+	.include "util.asm"
+	.include "init.asm"
+	.include "collision.asm"
+	.include "input.asm"
+	.include "draw.asm"
+	.include "gamelogic.asm"
+	.include "sound.asm"
 
 ;================================
 ; DATA
 ;================================
 
-	include "generated.asm"
+	.include "generated.asm"

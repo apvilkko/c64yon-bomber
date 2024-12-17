@@ -6,9 +6,9 @@ CheckCollision:
 
 	lda player1_bombing,x
 	cmp #NOT_BOMBING
-	bne .continue
+	bne @continue
 	rts
-.continue:
+@continue:
 
 	lda player1_bomb_y,x
 	sec
@@ -26,10 +26,10 @@ CheckCollision:
 	; temp & temp2 are now char coords x & y
 
 	; check bomb exiting screen in x direction
-	gte_branch temp,#40,.stopBombing
+	gte_branch temp,#40,@stopBombing
 	lda temp
 	and #%10000000
-	bne .stopBombing
+	bne @stopBombing
 
 	pushx
 	jsr GetScreenRamPos
@@ -40,9 +40,9 @@ CheckCollision:
 	lda (temp16),y
 	
 	cmp #EMPTY_BLOCK
-	beq .noCollision
+	beq @noCollision
 	cmp #GROUND
-	beq .stopBombing
+	beq @stopBombing
 
 	; bomb collided with scored block
 	lda #FALL_STOP
@@ -50,7 +50,7 @@ CheckCollision:
 	
 	; check that bomb can't go through any more blocks -> dismiss bomb
 	dec player1_bomb_thr,x
-	beq .stopBombing
+	beq @stopBombing
 
 	; increase score (block at first row (=12) equal one point and +1 onwards)
 	; a holds the current character which is the same as score
@@ -63,15 +63,15 @@ CheckCollision:
 	sta (temp16),y
 	jsr StoreDestroyedBlock
 
-	jmp .exit
-.stopBombing:
+	jmp @exit
+@stopBombing:
 	lda #NOT_BOMBING
 	sta player1_bombing,x
 	lda #FALL_STOP
 	sta sfx1_fall,x
 	jsr CheckBlockDrops
-.noCollision:
-.exit:
+@noCollision:
+@exit:
 	rts
 
 ; in: temp2 = y char coord
@@ -81,11 +81,11 @@ GetScreenRamPos:
 	sta temp16
 	sta temp16+1
 	ldx temp2
-.loopY:
+@loopY:
 	lda #40
 	inc16 temp16
 	dex
-	bne .loopY
+	bne @loopY
 
 	; temp16 now holds screen ram y offset from 0, add $0400 to get the absolute screen address
 	; only need to add high byte ($04)
@@ -103,41 +103,41 @@ StoreDestroyedBlock:
 	lsr
 	tax
 	ldy #7
-.loop:
+@loop:
 	lda player1_block_hits,x
 	cmp #$ff
-	beq .okToStore
+	beq @okToStore
 	sta temp3
 	inx
 	dey
-	bmi .exit
-	jmp .loop
-.okToStore:
+	bmi @exit
+	jmp @loop
+@okToStore:
 	; if same value already stored, no need to store again
 	lda temp3
 	cmp temp
-	beq .exit
+	beq @exit
 	lda temp
 	sta player1_block_hits,x
-.exit:
+@exit:
 	pullx
 	rts
 
 CheckBlockDrops:
 	ldx #$0f
-.more:
+@more:
 	lda player1_block_hits,x
 	cmp #$ff
-	beq .next
+	beq @next
 	jsr ProcessColumn
 	; this one processed, reset
 	lda #$ff
 	sta player1_block_hits,x
-.next:
+@next:
 	dex
-	bmi .done
-	jmp .more
-.done:
+	bmi @done
+	jmp @more
+@done:
 	rts
 
 ; in: A = x column
@@ -152,12 +152,12 @@ ProcessColumn:
 	jsr GetScreenRamPos
 
 	; advance to first non-ground coord (near the level edges ground is higher)
-.checkGround:
+@checkGround:
 	lda (temp16),y
 	cmp #GROUND
 	bne pcCheckBlock
 	dec16 temp16,#40
-	jmp .checkGround
+	jmp @checkGround
 
 pcCheckBlock:
 	; current block
@@ -170,11 +170,11 @@ pcCheckBlock:
 	; current block is empty, search first non-empty upwards
 
 	sta16 temp16_2,temp16+1,temp16
-.searchUpwards:
+@searchUpwards:
 	dec16 temp16_2,#40
 	lda (temp16_2),y
 	cmp #EMPTY_BLOCK
-	beq .searchUpwards
+	beq @searchUpwards
 	cmp #GROUND
 	beq pcNext ; break from upwards search, continue outer loop
 
